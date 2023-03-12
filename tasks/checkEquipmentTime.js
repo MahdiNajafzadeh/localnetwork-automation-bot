@@ -4,7 +4,7 @@ const {schedule} = require("node-cron");
 const logTime = require("../services/logTime.js")
 
 module.exports = () => {
-    schedule("8 * * * * 0,1,2,3,6,7", async () => {
+    schedule("* * 8 * * 0,1,2,3,6,7", async () => {
         logTime("INFO : Check Equipment Task is Running ...")
         const todayNumberTime = new Date().getTime();
         const allIssueData = await findUserData({numberTime: todayNumberTime});

@@ -2,7 +2,6 @@
 const database = require("./configDatabase");
 // Add Log Time --- For debugging and logging
 const logTime = require("../logTime");
-const {response} = require("express");
 //-----------------------------------------------------
 /**
  * @function
