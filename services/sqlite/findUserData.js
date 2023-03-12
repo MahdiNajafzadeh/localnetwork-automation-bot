@@ -2,46 +2,57 @@
 const database = require("./configDatabase");
 // Add Log Time --- For debugging and logging
 const logTime = require("../logTime");
+const {response} = require("express");
 //-----------------------------------------------------
 /**
+ * @function
+ * @description Get Data From DataBase
  * @param {Number} issueID
  * @param {boolean} selectAll
  * @returns {Array} list of Row Objects
  */
-module.exports = async (issueID, selectAll) => {
-  try {
-    if (selectAll) {
-      database.all(`SELECT * FROM Equipment`, (err, rows) => {
-        if (err) {
-          logTime(err);
-        } else {
-          logTime(rows)
-          return rows;
+module.exports = async (data) => {
+    try {
+        if (data.selectAll) {
+            return await new Promise((resolve, reject) => {
+                database.all(`SELECT * FROM Equipment`, (err, rows) => {
+                    if (err) {
+                        logTime(err);
+                        reject(err)
+                    } else {
+                        resolve(rows);
+                    }
+                });
+            })
+        } else if (data.issueID) {
+            return await new Promise((resolve, reject) => {
+                database.all(`SELECT * FROM Equipment WHERE IssueID =< ?`, [data.issueID], (err, rows) => {
+                    if (err) {
+                        logTime(err);
+                        reject(err)
+                    } else {
+                        if (rows.length === 1) {
+                            resolve(rows[0]);
+                        } else if (rows.length === 0) {
+                            reject("Error : Not Found !")
+                        } else {
+                            reject("Error : More than 1 Rows Found! -- check your database");
+                        }
+                    }
+                });
+            })
+        } else if (data.numberTime) {
+            return await new Promise((resolve, reject) => {
+                database.all(`SELECT * FROM Equipment WHERE numberTime < ${(new Date().getTime())}`, (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows);
+                    }
+                });
+            })
         }
-      });
-    } else {
-      database.all(
-        `SELECT * FROM Equipment
-        WHERE IssueID = ?`,
-        [issueID],
-        (err, rows) => {
-          if (err) {
-            logTime(err);
-          } else {
-            if (rows.length === 1) {
-              logTime("Found : issueID = " + row[0].issueID);
-              return rows[0];
-            } else if (rows.length === 0) {
-              logTime("Error : Not Found !")
-            } else {
-              logTime("Error : More than 1 Rows Found! -- check your database");
-            }
-          }
-        }
-      );
+    } catch (error) {
+        logTime(`Error : ${error}`);
     }
-    // database.close();
-  } catch (error) {
-    logTime(`Error : ${error}`);
-  }
-};
+}
